@@ -11,6 +11,9 @@
 import java.awt.*;
 import java.util.*;
 
+
+import javax.swing.JPanel;
+
 /**
  * Several methods to draw graphics
  * 
@@ -18,7 +21,7 @@ import java.util.*;
  * @version 1.6
  * @since   2011-08-10
  **/
-public class DrawGraphics{
+public class DrawGraphics extends JPanel{
     /** Random number generator for explosion effect **/
     private static Random generator = new Random();
     
@@ -108,12 +111,12 @@ public class DrawGraphics{
                 (myCentipedes[i].length != 0)){
                 // First draw the head
                 g.setColor(head);
-                g.fillOval(myCentipedes[i].segments[0].x*Settings.scale, myCentipedes[i].segments[0].y*Settings.scale, Settings.scale, Settings.scale);
+                g.fillOval(myCentipedes[i].segments[0].location.x*Settings.scale, myCentipedes[i].segments[0].location.y*Settings.scale, Settings.scale, Settings.scale);
                 
                 // Next draw the body segments
                 g.setColor(body);
                 for (j = 1; j < myCentipedes[i].length; j++){
-                    g.fillOval(myCentipedes[i].segments[j].x*Settings.scale, myCentipedes[i].segments[j].y*Settings.scale, Settings.scale, Settings.scale);
+                    g.fillOval(myCentipedes[i].segments[j].location.x*Settings.scale, myCentipedes[i].segments[j].location.y*Settings.scale, Settings.scale, Settings.scale);
                 }
             }
         }
@@ -186,4 +189,16 @@ public class DrawGraphics{
             }
         }
     }
+
+    public static void drawSpider(Graphics g, Spider mySpider){
+        Color spider_color = new Color(220,20,60);
+        
+        // only draw if spider exists
+        if( mySpider.health != 0){
+            g.setColor(spider_color);
+            g.drawRect(mySpider.loc.x, mySpider.loc.y, Settings.sScale, Settings.sScale);
+        }
+        
+    }
+
 }

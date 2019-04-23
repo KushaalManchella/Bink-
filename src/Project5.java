@@ -6,7 +6,7 @@
 
 /**
  *
- * @author Omar
+ * @author Kushaal
  */
 import java.awt.*;
 import javax.swing.*;
@@ -45,6 +45,9 @@ public class Project5 extends JApplet{
     
     /** Array of projectiles **/
     private Point myProjectiles[];
+
+    /** spider object */
+    private Spider mySpider;
     
     /**
      * Starts the program
@@ -62,8 +65,9 @@ public class Project5 extends JApplet{
         myMushrooms = new Mushroom[Settings.width][Settings.height];
         myProjectiles = new Point[Settings.maxProjectiles];        
         myShip = new Ship(myGameSounds, myProjectiles);
-        myCentipedes = new Centipede[Settings.centipedeStartSize];        
-        myGameCanvas = new GameCanvas(myGameSounds, myMushrooms, myCentipedes, myShip, myProjectiles);
+        myCentipedes = new Centipede[Settings.centipedeStartSize];  
+        //mySpider = new Spider(new Point(20,20), Settings.spiderHealth);      
+        myGameCanvas = new GameCanvas(myGameSounds, myMushrooms, myCentipedes, myShip, myProjectiles, mySpider);
         myGameLogic = new GameLogic(myGameSounds, myGameCanvas, myHighScores, myMushrooms, myCentipedes, myShip, myProjectiles);
         myFrame = new Frame(myGameLogic, myGameCanvas, myHighScores);
         

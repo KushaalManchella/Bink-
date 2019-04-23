@@ -62,4 +62,11 @@ public class Settings{
     public static int startLives = 2;
     public static boolean superLaser = false;
     public static int superLaserDelay = 100;
+    public static int centHealth = 2;
+
+    // Spider icon dimensions
+
+    public static final int sScale = 25;
+    public static final int spiderHealth = 2;
+    ;
 }

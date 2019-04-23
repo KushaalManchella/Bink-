@@ -18,9 +18,13 @@ import java.util.*;
  * @version 1.6
  * @since   2011-08-08
  **/
+
+
+
+
 public class Centipede{
     /** Array of the centipede's body segments **/
-    public Point segments[];
+    public Segment segments[];
     
     /** Centipede head's horizontal heading **/
     public int horizontal;
@@ -30,6 +34,7 @@ public class Centipede{
     
     /** Number of segments left in the centipede **/
     public int length;
+
     
     /**
      * @param inLength     Length of the centipede to create
@@ -40,7 +45,7 @@ public class Centipede{
         length = inLength;
         horizontal = inHorizontal;
         vertical = inVertical;
-        segments = new Point[length];
+        segments = new Segment[length];
     }
     
     /**
@@ -51,8 +56,8 @@ public class Centipede{
      */
     public int contains(Point testLoc){     
         for (int i = 0; i < length; i++){
-            if ((segments[i].x == testLoc.x) &&
-                (segments[i].y == testLoc.y)){
+            if ((segments[i].location.x == testLoc.x) &&
+                (segments[i].location.y == testLoc.y)){
                 return i;
             }
         }

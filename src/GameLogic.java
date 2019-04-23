@@ -11,6 +11,8 @@
 import java.awt.*;
 import java.util.*;
 import java.math.*;
+import javax.swing.*;
+import javax.swing.JPanel;
 
 /**
  * Handles most game logic
@@ -44,6 +46,7 @@ public class GameLogic extends Thread{
     private GameSounds myGameSounds;
     private Centipede myCentipedes[];
     private Mushroom myMushrooms[][];
+    private Spider mySpider;
     private GameCanvas myGameCanvas;
     private Ship myShip;
     private HighScores myHighScores;    
@@ -67,6 +70,7 @@ public class GameLogic extends Thread{
         myCentipedes = inCentipedes;
         myProjectiles = inProjectiles;
         myShip = inShip;
+        
         
         generator = new Random();
         syncReset = false;
@@ -119,7 +123,7 @@ public class GameLogic extends Thread{
                     // Initialize centipede array
                     myCentipedes[0] = new Centipede(Settings.centipedeStartSize, Settings.RIGHT, Settings.DOWN);
                     for (i = 0; i < Settings.centipedeStartSize; i++){
-                        myCentipedes[0].segments[i] = new Point(- i * myCentipedes[0].horizontal, 0);
+                        myCentipedes[0].segments[i] = new Segment(new Point(- i * myCentipedes[0].horizontal, 0), Settings.centHealth);
                     }
                     
                     // Clear all but the first centipede
@@ -163,7 +167,7 @@ public class GameLogic extends Thread{
                     // Initialize centipede array
                     myCentipedes[0] = new Centipede(Settings.centipedeStartSize, Settings.RIGHT, Settings.DOWN);
                     for (i = 0; i < Settings.centipedeStartSize; i++){
-                        myCentipedes[0].segments[i] = new Point(- i * myCentipedes[0].horizontal, 0);
+                        myCentipedes[0].segments[i] = new Segment(new Point(- i * myCentipedes[0].horizontal, 0), Settings.centHealth);
                     }
                     
                     // Clear all but the first centipede
@@ -225,7 +229,7 @@ public class GameLogic extends Thread{
         // Initialize centipede array
         myCentipedes[0] = new Centipede(Settings.centipedeStartSize, Settings.RIGHT, Settings.DOWN);
         for (i = 0; i < Settings.centipedeStartSize; i++){
-            myCentipedes[0].segments[i] = new Point(- i * myCentipedes[0].horizontal, 0);
+            myCentipedes[0].segments[i] = new Segment(new Point(- i * myCentipedes[0].horizontal, 0), Settings.centHealth);
         }
         
         // Clear all but the first centipede
@@ -253,6 +257,15 @@ public class GameLogic extends Thread{
         for (i = 0; i < myProjectiles.length; i++){
             myProjectiles[i] = null;
         }
+
+        // Create a Spider and place it at a random location 
+        /*
+        x = (generator.nextInt(Settings.width-2))+1; // Keep mushrooms off the edge of the screen
+        y = (generator.nextInt(Settings.height-3))+1; // Keep mushrooms away from the last 2 lines of the screen and the top line
+        mySpider = new Spider(new Point(x,y), Settings.spiderHealth);
+        */
+
+        
         
         // Switch off gameOverFlag and play the new game sound
         gameOverFlag = false;
@@ -340,7 +353,7 @@ public class GameLogic extends Thread{
             // Only continue if this centipede actually exists
             if (myCentipedes[i] != null){
                 // Save the current head for use by the second segment
-                curHead = new Point(myCentipedes[i].segments[0].x, myCentipedes[i].segments[0].y);
+                curHead = new Point(myCentipedes[i].segments[0].location.x, myCentipedes[i].segments[0].location.y);
                 
                 // Try to move to next horizontal space
                 newHead = new Point(curHead.x + myCentipedes[i].horizontal, curHead.y);
@@ -355,9 +368,15 @@ public class GameLogic extends Thread{
                     (overlapTest != 0)){
                     
                     // If at top/bottom of screen, reverse vertical direction
-                    if (curHead.y == 0){
+                    //System.out.print(curHead.y);
+                    if (curHead.y ==0){
                         myCentipedes[i].vertical = Settings.DOWN;
-                    }else if (curHead.y == Settings.height - 1){
+                    }
+                    else if(curHead.y == Settings.height - 5 && myCentipedes[i].vertical == Settings.UP)
+                    {
+                        myCentipedes[i].vertical = Settings.DOWN;
+                    }
+                    else if (curHead.y == Settings.height - 1){
                         myCentipedes[i].vertical = Settings.UP;
                     }
                     
@@ -370,8 +389,8 @@ public class GameLogic extends Thread{
                 // Centipede segments follow next in line
                 tempPoints[1] = newHead;
                 for (int j = 0; j < myCentipedes[i].length; j++){
-                    tempPoints[j%2] = myCentipedes[i].segments[j];
-                    myCentipedes[i].segments[j] = tempPoints[(j+1)%2];
+                    tempPoints[j%2] = myCentipedes[i].segments[j].location;
+                    myCentipedes[i].segments[j].location = tempPoints[(j+1)%2];
                 }
             }
         }
@@ -406,8 +425,8 @@ public class GameLogic extends Thread{
                 // Loop through each segment of the centipede, testing for impact
                 for (j = 0; j < myCentipedes[i].length; j++){
                     // Find the center of the centipede segment
-                    testCenterX = Settings.scale*(myCentipedes[i].segments[j].x + 0.5);
-                    testCenterY = Settings.scale*(myCentipedes[i].segments[j].y + 0.5);
+                    testCenterX = Settings.scale*(myCentipedes[i].segments[j].location.x + 0.5);
+                    testCenterY = Settings.scale*(myCentipedes[i].segments[j].location.y + 0.5);
                     
                     // Calculate the distance between the two centers
                     distance = Math.sqrt(Math.pow(shipCenterX - testCenterX, 2) + Math.pow(shipCenterY - testCenterY, 2));
@@ -511,13 +530,16 @@ public class GameLogic extends Thread{
                 // If the projectile will hit a centipede, then remove the projectile and perform appropriate reaction
                 }else if (overlapResult%(Settings.CENT*2) >= Settings.CENT){
                     myProjectiles[i] = null;
-                    
+                  
                     // Increase score according to difficulty.  Faster centipedes yield more points.  Super laser decreases score by a factor of Settings.maxProjectiles.
+                   /*
                     if (Settings.superLaser){
                         score += (int) Math.round((Settings.centDelayEasy - Settings.centDelay)*Math.pow(Settings.levelFactor, level)/Settings.maxProjectiles);
                     }else{
                         score += (int) Math.round((Settings.centDelayEasy - Settings.centDelay)*Math.pow(Settings.levelFactor, level));
                     }
+                    */
+                    
                     
                     // Find impacted centipede
                     for(int j = 0; j < Settings.centipedeStartSize; j++){
@@ -529,43 +551,58 @@ public class GameLogic extends Thread{
                             
                             // If the centipede contains the projectile, then get the segment that was hit
                             if (hitSegment != -1){
+                                // Decrement health of hit segment 
+                                myCentipedes[j].segments[hitSegment].health--;
+
+                                // only do below changes if segment's health is 0;
                                 
-                                // Only create a new centipede if it did not hit the tail
-                                if (hitSegment < myCentipedes[j].length - 1){
-                                    
-                                    // Loop through all centipede array positions until a vacant one is found
-                                    for (int k = 0; k < myCentipedes.length; k++){
+                                if( myCentipedes[j].segments[hitSegment].health == 0)
+                                {
+
+                                    score += 5;
+                                    // Only create a new centipede if it did not hit the tail
+                                    if (hitSegment < myCentipedes[j].length - 1){
                                         
-                                        // If the current centipede position is vacant, create a new centipede there
-                                        if (myCentipedes[k] == null){
-                                            // Copy over information from hit centipede
-                                            newCentLength = myCentipedes[j].length - hitSegment - 1;
-                                            newCentVert = myCentipedes[j].vertical;
-                                            newCentHor = myCentipedes[j].horizontal;
-                                            newCentHead = new Point(myCentipedes[j].segments[hitSegment+1].x, myCentipedes[j].segments[hitSegment+1].y);
+                                        // Loop through all centipede array positions until a vacant one is found
+                                        for (int k = 0; k < myCentipedes.length; k++){
                                             
-                                            // Create a new centipede object in the vacant space
-                                            myCentipedes[k] = new Centipede(newCentLength, newCentHor, newCentVert);
-                                            
-                                            // Copy over hit centipede's segments
-                                            for (int m = 0; m < newCentLength; m++){
-                                                myCentipedes[k].segments[m] = new Point(myCentipedes[j].segments[hitSegment+1+m].x, myCentipedes[j].segments[hitSegment+1+m].y);
+                                            // If the current centipede position is vacant, create a new centipede there
+                                            if (myCentipedes[k] == null){
+                                                // Copy over information from hit centipede
+                                                newCentLength = myCentipedes[j].length - hitSegment - 1;
+                                                newCentVert = myCentipedes[j].vertical;
+                                                newCentHor = myCentipedes[j].horizontal;
+                                                newCentHead = new Point(myCentipedes[j].segments[hitSegment+1].location.x, myCentipedes[j].segments[hitSegment+1].location.y);
+                                                
+                                                // Create a new centipede object in the vacant space
+                                                myCentipedes[k] = new Centipede(newCentLength, newCentHor, newCentVert);
+                                                
+                                                // Copy over hit centipede's segments
+                                                for (int m = 0; m < newCentLength; m++){
+                                                    //myCentipedes[k].segments[m].location = new Point(myCentipedes[j].segments[hitSegment+1+m].location.x, myCentipedes[j].segments[hitSegment+1+m].location.y);
+                                                    myCentipedes[k].segments[m] = new Segment (new Point(myCentipedes[j].segments[hitSegment+1+m].location.x, myCentipedes[j].segments[hitSegment+1+m].location.y), Settings.centHealth);
+                                                }
+                                                
+                                                // Only need to create one new centipede so break from the loop
+                                                break;
                                             }
-                                            
-                                            // Only need to create one new centipede so break from the loop
-                                            break;
                                         }
                                     }
+                                
+
+                                
+                                    // Create mushroom
+                                    Point newShroom = new Point(myCentipedes[j].segments[hitSegment].location.x, myCentipedes[j].segments[hitSegment].location.y);
+                                    myMushrooms[newShroom.x][newShroom.y] = new Mushroom(newShroom, Settings.shroomStartHealth);
+                                    
+                                    // Adjust length of hit centipede
+                                    myCentipedes[j].length = hitSegment;
+                                    myGameSounds.centDie();
+                                    break;
                                 }
-                                
-                                // Create mushroom
-                                Point newShroom = new Point(myCentipedes[j].segments[hitSegment].x, myCentipedes[j].segments[hitSegment].y);
-                                myMushrooms[newShroom.x][newShroom.y] = new Mushroom(newShroom, Settings.shroomStartHealth);
-                                
-                                // Adjust length of hit centipede
-                                myCentipedes[j].length = hitSegment;
-                                myGameSounds.centDie();
-                                break;
+                                else{
+                                    score += 2;
+                                }
                             }
                         }
                     }

@@ -46,6 +46,9 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
     
     /** Blank cursor used when the mouse is in the ship's valid movement range **/
     private Cursor blankCursor;
+
+    /** Spider object */
+    private Spider mySpider; 
     
     /**
      * @param inGameSounds  Used to play game sounds
@@ -54,7 +57,7 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
      * @param inShip        Player's ship object
      * @param inProjectiles Array of projectiles
      **/
-    public GameCanvas(GameSounds inGameSounds, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[]){
+    public GameCanvas(GameSounds inGameSounds, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[], Spider mySpider){
         myGameSounds = inGameSounds;
         myMushrooms = inMushrooms;
         myCentipedes = inCentipedes;
@@ -80,6 +83,8 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
     /**
      * Calls methods to draw images on the canvas
      **/
+
+
     public void drawFrame() {
         
         BufferStrategy bf = c.getBufferStrategy();
@@ -113,6 +118,9 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
                 if (myShip != null){
                     DrawGraphics.drawShip(g, myShip);
                 }
+            }
+            if(mySpider != null){
+                DrawGraphics.drawSpider(g, mySpider);
             }
             
         // Dispose of the graphics object after it has been drawn
