@@ -6,7 +6,7 @@
 
 /**
  *
- * @author Omar
+ * @author Kushaal
  */
 import java.awt.*;
 import java.awt.event.*;
@@ -56,13 +56,15 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
      * @param inCentipedes  Array of centipedes
      * @param inShip        Player's ship object
      * @param inProjectiles Array of projectiles
+     * @param inSpider The spider
      **/
-    public GameCanvas(GameSounds inGameSounds, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[], Spider mySpider){
+    public GameCanvas(GameSounds inGameSounds, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[], Spider inSpider){
         myGameSounds = inGameSounds;
         myMushrooms = inMushrooms;
         myCentipedes = inCentipedes;
         myShip = inShip;
         myProjectiles = inProjectiles;
+        mySpider = inSpider;
         
         // Transparent 16 x 16 pixel cursor image.
         cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -117,10 +119,12 @@ public class GameCanvas implements MouseListener, MouseMotionListener{
             if (!myGameLogic.gameOverFlag || (myShip.invulnerableTime != 0)){
                 if (myShip != null){
                     DrawGraphics.drawShip(g, myShip);
+                    //System.out.print(myShip.loc);
                 }
             }
-            if(mySpider != null){
+            if(mySpider != null && mySpider.health != 0){
                 DrawGraphics.drawSpider(g, mySpider);
+                //System.out.print(mySpider.loc);
             }
             
         // Dispose of the graphics object after it has been drawn

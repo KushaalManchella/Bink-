@@ -32,6 +32,7 @@ public class Settings{
     public static final int SHIP = 4;
     public static final int SHROOM = 8;
     public static final int CENT = 16;
+    public static final int SPID = 32;
     
     // Display dimensions
     public static final int width = 30;
@@ -54,6 +55,7 @@ public class Settings{
             
     // Variable settings
     public static int centDelay = startDifficulty;
+    public static int spiderDelay = 200;
     public static int startShrooms = 20;
     public static int shroomStartHealth = 3;
     public static int invulnerableTime = 300; // 2000

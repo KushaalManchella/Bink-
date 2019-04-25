@@ -141,7 +141,6 @@ public class DrawGraphics extends JPanel{
             
         // If the game is invulnerable, it was recently blown up and so an explosion animation should be displayed
         }else{
-            
             // Draw as many pixels as the width of the ship
             for (i = 0; i < Settings.scale; i++){
                 
@@ -191,13 +190,20 @@ public class DrawGraphics extends JPanel{
     }
 
     public static void drawSpider(Graphics g, Spider mySpider){
-        Color spider_color = new Color(220,20,60);
         
         // only draw if spider exists
-        if( mySpider.health != 0){
-            g.setColor(spider_color);
-            g.drawRect(mySpider.loc.x, mySpider.loc.y, Settings.sScale, Settings.sScale);
+        if(mySpider != null && mySpider.health != 0){
+            g.setColor(Color.WHITE);
+            //g.fillRect(Settings.shipStartLoc.x, Settings.shipStartLoc.y, Settings.sScale, Settings.sScale);
+            /*
+            g.fillOval(Settings.shipStartLoc.x+3, Settings.shipStartLoc.y-3, Settings.sScale-14, Settings.sScale-14);
+            g.fillOval(Settings.shipStartLoc.x, Settings.shipStartLoc.y+5, Settings.sScale-8, Settings.sScale-8);
+            */
+            g.fillOval(mySpider.loc.x*Settings.scale+3, mySpider.loc.y*Settings.scale-3, Settings.sScale-14, Settings.sScale-14);
+            g.fillOval(mySpider.loc.x*Settings.scale, mySpider.loc.y*Settings.scale+5, Settings.sScale-8, Settings.sScale-8);
+
         }
+
         
     }
 

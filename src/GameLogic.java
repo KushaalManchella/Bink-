@@ -13,6 +13,7 @@ import java.util.*;
 import java.math.*;
 import javax.swing.*;
 import javax.swing.JPanel;
+import java.lang.Math;
 
 /**
  * Handles most game logic
@@ -62,7 +63,7 @@ public class GameLogic extends Thread{
      * @param inShip        Player's ship
      * @param inProjectiles Array of projectiles
      **/
-    public GameLogic(GameSounds inGameSounds, GameCanvas inGameCanvas, HighScores inHighScores, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[]){
+    public GameLogic(GameSounds inGameSounds, GameCanvas inGameCanvas, HighScores inHighScores, Mushroom inMushrooms[][], Centipede inCentipedes[], Ship inShip, Point inProjectiles[], Spider inSpider){
         myGameCanvas = inGameCanvas;
         myGameSounds = inGameSounds;
         myHighScores = inHighScores;
@@ -70,6 +71,7 @@ public class GameLogic extends Thread{
         myCentipedes = inCentipedes;
         myProjectiles = inProjectiles;
         myShip = inShip;
+        mySpider = inSpider;
         
         
         generator = new Random();
@@ -87,6 +89,10 @@ public class GameLogic extends Thread{
         int life_wait = -1;   // variable to make centipede wait while explosion is happening to ship 
         long lastCentUpdate = System.currentTimeMillis();
         long lastFireUpdate = System.currentTimeMillis();
+        long lastSpiderUpdate = System.currentTimeMillis();
+
+        
+        //mySpider = new Spider(new Point(20,20), Settings.spiderHealth);
 
         if(iteration == 100)
         {
@@ -102,6 +108,7 @@ public class GameLogic extends Thread{
             // If the syncReset flag is true, then reset the game
             if (syncReset == true){
                 initGame();
+                //System.out.print(mySpider.health);
                 myGameSounds.newGame();
                 syncReset = false;
                 paused = false;
@@ -118,8 +125,11 @@ public class GameLogic extends Thread{
                     }
                 }
                 
+                
                 // All centipedes defeated.  Proceed to next level
                 if (i == myCentipedes.length){
+                    System.out.print("GOT HERE");
+                    score += 500;
                     // Initialize centipede array
                     myCentipedes[0] = new Centipede(Settings.centipedeStartSize, Settings.RIGHT, Settings.DOWN);
                     for (i = 0; i < Settings.centipedeStartSize; i++){
@@ -130,7 +140,6 @@ public class GameLogic extends Thread{
                     for (i = 1; i < Settings.centipedeStartSize; i++){
                         myCentipedes[i] = null;
                     }
-                    
                     // Play next level sound increment level
                     myGameSounds.nextLevel();
                     level++;
@@ -155,11 +164,26 @@ public class GameLogic extends Thread{
                 
                 // Move the projectiles
                 moveProjectiles();
+
+                // Has player defeated spider?
+                if (mySpider != null && mySpider.health != 0){
+                    if (System.currentTimeMillis() - lastSpiderUpdate > Settings.spiderDelay){
+                        lastSpiderUpdate = System.currentTimeMillis();
+                        moveSpider();
+                    }
+                }
+                //System.out.print(mySpider.loc);
                 
 
                 // Move the ship
                 if (!gameOverFlag){
                     life_lost = moveShip();
+                }
+
+                // Initialize new spider
+                if (life_wait != -1){
+                    mySpider.health = 2;
+                    mySpider.loc = new Point(29,Settings.height - 5);
                 }
 
                 if(life_lost == 1)
@@ -174,9 +198,8 @@ public class GameLogic extends Thread{
                     for (i = 1; i < Settings.centipedeStartSize; i++){
                         myCentipedes[i] = null;
                     }
-                    
 
-                    // restore all centipedes to original health 
+                    // restore all Mushrooms to original health 
 
                     for (int m = 0; m < Settings.width; m++)
                     {
@@ -184,7 +207,10 @@ public class GameLogic extends Thread{
                         {
                             if(myMushrooms[m][n] != null)
                             {
-                                myMushrooms[m][n].health = 3;
+                                if(myMushrooms[m][n].health != 3){
+                                    score += 10;
+                                    myMushrooms[m][n].health = 3;
+                                }
                             }
                         }
                     }
@@ -247,10 +273,12 @@ public class GameLogic extends Thread{
         // Randomly place starting mushrooms
         for (i = 0; i < Settings.startShrooms; i++){
             do{
-                x = (generator.nextInt(Settings.width-2))+1; // Keep mushrooms off the edge of the screen
-                y = (generator.nextInt(Settings.height-3))+1; // Keep mushrooms away from the last 2 lines of the screen and the top line
+                x = (generator.nextInt(Settings.width-3))+1; // Keep mushrooms off the edge of the screen
+                y = (generator.nextInt(Settings.height-6))+1; // Keep mushrooms away from the last 2 lines of the screen and the top line
             }while(myMushrooms[x][y] != null);
-            myMushrooms[x][y] = new Mushroom(new Point(x, y), Settings.shroomStartHealth);
+            if(myMushrooms[x+1][y+1] == null && myMushrooms[x-1][y+1] == null && myMushrooms[x-1][y-1] == null && myMushrooms[x+1][y-1] == null ){
+                 myMushrooms[x][y] = new Mushroom(new Point(x, y), Settings.shroomStartHealth);
+            }
         }
         
         // Clear array of projectiles
@@ -259,11 +287,10 @@ public class GameLogic extends Thread{
         }
 
         // Create a Spider and place it at a random location 
-        /*
-        x = (generator.nextInt(Settings.width-2))+1; // Keep mushrooms off the edge of the screen
-        y = (generator.nextInt(Settings.height-3))+1; // Keep mushrooms away from the last 2 lines of the screen and the top line
-        mySpider = new Spider(new Point(x,y), Settings.spiderHealth);
-        */
+
+        //mySpider = new Spider(new Point(29,Settings.height - 5), Settings.spiderHealth, -1, 1);
+        //System.out.print(mySpider.health);
+
 
         
         
@@ -320,6 +347,13 @@ public class GameLogic extends Thread{
                 }
             }
         }
+        // check spider 
+        if ((mySpider != null) && (mySpider.health != 0)){
+                if (mySpider.contains(loc) != -1){
+                    result += Settings.SPID;
+                }
+            }
+
         
         // Check for wall impact
         if ((loc.x < 0) ||
@@ -357,6 +391,7 @@ public class GameLogic extends Thread{
                 
                 // Try to move to next horizontal space
                 newHead = new Point(curHead.x + myCentipedes[i].horizontal, curHead.y);
+                //System.out.print(newHead);
                 
                 // Check to see if the newHead space is blocked
                 overlapTest = overlap(newHead);
@@ -448,7 +483,30 @@ public class GameLogic extends Thread{
                 }
             }
         }
-        
+
+        // Check if Ship has collided into a Spider
+        if(mySpider != null && mySpider.health != 0){
+            testCenterX = Settings.scale*(mySpider.loc.x + 0.5);
+            testCenterY = Settings.scale*(mySpider.loc.y + 0.5);
+            
+            // Calculate the distance between the two centers
+            distance = Math.sqrt(Math.pow(shipCenterX - testCenterX, 2) + Math.pow(shipCenterY - testCenterY, 2));
+                                
+            // If distance less than the game scale and the ship is not invulnerable, then they have collided.
+            if ((distance < Settings.scale) &&(myShip.invulnerableTime == 0)){
+                // Play the game explosion sound, decrement the lives counter and set the invulnerable timer.
+                myGameSounds.shipExplode();
+                myShip.lives--;
+                life_lost = 1;
+                myShip.invulnerableTime = Settings.invulnerableTime;
+
+                // If the ship has run out of lives, then the game is over.  
+                if (myShip.lives < 0){
+                    gameOver();
+                }
+            }
+        }
+
         // Because the ship's position is based on a full pixel grid but the mushrooms positions are based on the smaller non-scaled grid,
         // it is necessary to create a scaled down coordinate corresponding to the ship's location to get the nine mushrooms to test.
         scaledDownPoint = new Point((int) Math.floor(shipCenterX/Settings.scale), (int) Math.floor(shipCenterY/Settings.scale));
@@ -618,14 +676,114 @@ public class GameLogic extends Thread{
                     }
                     myGameSounds.shroomHit();
                     myProjectiles[i] = null;
+                // If the projectile hit a spider, remove the spider. 
+                }else if (overlapResult%(Settings.SPID*2) >= Settings.SPID){
+                    hitSegment = mySpider.contains(scaledDownPoint);
+                    // If the centipede contains the projectile, then get the segment that was hit
+                    if (hitSegment != -1){
+                        // Decrement health of hit segment 
+                        mySpider.health--;
+                        if(mySpider.health == 1){
+                            score += 100;
+                        }
+                        else if(mySpider.health == 0){
+                            score += 600;
+                            myGameSounds.centDie();
+                        }
+                        //System.out.print(mySpider.health);
+                        myProjectiles[i] = null;
+                    }
+                    /*
+                    if(mySpider.health == 0)
+                    {
+                        mySpider = null;
+                    }
+                    */
                     
+
+                }
                 // If the projectile did not hit anything, then move it up a pixel
-                }else{
+                else{
                     myProjectiles[i].y--;
                 }
             }
         }
     }
+
+
+    public void moveSpider(){
+        int temp_val = 0; // holds temp vertical or horizontal direction 
+
+        if(mySpider != null && mySpider.health != 0)
+        {
+
+            if(mySpider.loc.y == Settings.height - 5)
+            {
+                mySpider.sVertical = Settings.DOWN;
+                mySpider.loc.y = mySpider.loc.y + mySpider.sVertical;
+                return;
+            }
+            else if (mySpider.loc.y == Settings.height - 1){
+                mySpider.sVertical = Settings.UP;
+                mySpider.loc.y += mySpider.sVertical;
+                return;
+            }
+            else if (mySpider.loc.x == Settings.width){
+                mySpider.sHorizontal = Settings.LEFT;
+                mySpider.loc.x += mySpider.sHorizontal;
+                return;
+            }
+            else if(mySpider.loc.x == 0){
+                mySpider.sHorizontal = Settings.RIGHT;
+                mySpider.loc.x += mySpider.sHorizontal;
+                return;
+            }
+
+            if(mySpider.sHorizontal == Settings.LEFT){
+                while(mySpider.loc.x > -1){
+                    temp_val = (int) Math.floor(Math.random() * Math.floor(2));
+                    if(temp_val == 0){
+                        mySpider.sVertical = Settings.UP;
+                        mySpider.loc.y += mySpider.sVertical;
+                        mySpider.loc.x += mySpider.sHorizontal;
+                        return;
+                    }
+                    else if(temp_val == 1){
+                        mySpider.sVertical = Settings.DOWN;
+                        mySpider.loc.y += mySpider.sVertical;
+                        mySpider.loc.x += mySpider.sHorizontal;
+                        return;
+                    }
+                }
+            }
+            else if(mySpider.sHorizontal == Settings.RIGHT){
+                while(mySpider.loc.x < Settings.width + 1){
+                    temp_val = (int) Math.floor(Math.random() * Math.floor(2));
+                    if(temp_val == 0){
+                        mySpider.sVertical = Settings.UP;
+                        mySpider.loc.y += mySpider.sVertical;
+                        mySpider.loc.x += mySpider.sHorizontal;
+                        return;
+                    }
+                    else if(temp_val == 1){
+                        mySpider.sVertical = Settings.DOWN;
+                        mySpider.loc.y += mySpider.sVertical;
+                        mySpider.loc.x += mySpider.sHorizontal;
+                        return;
+                    }
+                }
+            }
+
+            /*
+            // Move vertically and reverse horizontal direction
+            mySpider.loc.x = mySpider.loc.x + mySpider.sHorizontal;
+            mySpider.loc.y = mySpider.loc.y + mySpider.sVertical;
+            mySpider.sHorizontal *= -1;
+            */
+
+        }
+    }
+
     
     /**
      * Flips gameOverFlag to true, plays the game over sound and tries to add a high score

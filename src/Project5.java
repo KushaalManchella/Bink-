@@ -66,9 +66,9 @@ public class Project5 extends JApplet{
         myProjectiles = new Point[Settings.maxProjectiles];        
         myShip = new Ship(myGameSounds, myProjectiles);
         myCentipedes = new Centipede[Settings.centipedeStartSize];  
-        //mySpider = new Spider(new Point(20,20), Settings.spiderHealth);      
+        mySpider = new Spider(new Point(29,Settings.height - 5), Settings.spiderHealth, -1, 1);      
         myGameCanvas = new GameCanvas(myGameSounds, myMushrooms, myCentipedes, myShip, myProjectiles, mySpider);
-        myGameLogic = new GameLogic(myGameSounds, myGameCanvas, myHighScores, myMushrooms, myCentipedes, myShip, myProjectiles);
+        myGameLogic = new GameLogic(myGameSounds, myGameCanvas, myHighScores, myMushrooms, myCentipedes, myShip, myProjectiles, mySpider);
         myFrame = new Frame(myGameLogic, myGameCanvas, myHighScores);
         
         myGameCanvas.myGameLogic = myGameLogic;
